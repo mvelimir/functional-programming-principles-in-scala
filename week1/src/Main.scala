@@ -25,13 +25,12 @@ object Main {
   
   def balance(chars: List[Char]): Boolean = {
     
-    def bracketTotal(chars: List[Char], total: Int): Boolean = {
-      if (total < 0) false
-      else if (chars.isEmpty) total == 0
-      else if (chars.head == '(') bracketTotal(chars.tail, total + 1)
-      else if (chars.head == ')') bracketTotal(chars.tail, total - 1)
-      else bracketTotal(chars.tail, total)
-    }
+    def bracketTotal(chars: List[Char], total: Int): Boolean = chars match {
+      case Nil => total == 0
+      case '(' :: t => bracketTotal(t, total + 1)
+      case ')' :: t => if (total > 0) bracketTotal(t, total - 1) else false
+      case _ :: t => bracketTotal(t, total)
+      }
     
     bracketTotal(chars, 0)
   }
@@ -41,9 +40,14 @@ object Main {
    */
   
   def countChange(money: Int, coins: List[Int]): Int = {
-    if (money < 0 || coins.isEmpty || coins.head == 0) 0
-    else if (money == 0) 1
-    else countChange(money - coins.head, coins) + countChange(money, coins.tail)
+    @tailrec def countChangeHelper(money: Int, coins: List[Int], total: Int): Int = {
+      if (money < 0 || coins.isEmpty || coins.head == 0) total
+      else if (money == 0) total + 1
+      else countChangeHelper(money, coins.tail, total + countChange(money - coins.head, coins))
+    }
+      
+    countChangeHelper(money, coins, 0)
+     
   }
   
 }
