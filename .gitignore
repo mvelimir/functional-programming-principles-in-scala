@@ -1,0 +1,11 @@
+*.class
+*.log
+*.iml
+*.ipr
+*.iws
+.bsp/
+.idea/
+target/
+bin/
+lib_managed/
+project/
