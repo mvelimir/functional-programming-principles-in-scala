@@ -51,9 +51,13 @@ object FunSets {
     */
   def forall(s: Set, p: Int => Boolean): Boolean = {
     def inforall(el: Int): Boolean =
-      if (el > limit) true
-      else if (contains(s, el) && p(el)) inforall(el + 1)
-      else false
+      if (el > limit) {
+        true
+      } else if (contains(s, el) && p(el)) {
+        inforall(el + 1)
+      } else {
+        false
+      }
     inforall(-limit)
   }
 
@@ -66,7 +70,7 @@ object FunSets {
   /**
     * Returns a set transformed by applying `f` to each element of `s`.
     */
-  def map(a: Set, f: Int => Int): Set = x => (exists(a, y => f(y) == x))
+  def map(a: Set, f: Int => Int): Set = x => exists(a, y => f(y) == x)
 
   /**
     * Displays the contents of a set
