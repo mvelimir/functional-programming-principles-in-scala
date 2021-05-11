@@ -12,9 +12,9 @@ object Main {
   def formatPascalTriangle(n: Int): String =
     (0 to n)
       .map { row =>
-        (0 to row).map(pascal(_, row).toString).reduce(_ + " " + _)
+        (0 to row).map(pascal(_, row)).mkString(" ")
       }
-      .reduce(_ + "\n" + _)
+      .mkString("\n")
 
   /**
     * Exercise 1
