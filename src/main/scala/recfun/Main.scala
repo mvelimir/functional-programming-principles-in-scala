@@ -6,19 +6,25 @@ object Main {
 
   def main(args: Array[String]) {
     println("Pascal's Triangle")
-    for (row <- 0 to 10) {
-      for (col <- 0 to row)
-        print(pascal(col, row) + " ")
-      println()
-    }
+    print(formatPascalTriangle(10))
   }
+
+  def formatPascalTriangle(n: Int): String =
+    (0 to n)
+      .map { row =>
+        (0 to row).map(pascal(_, row).toString).reduce(_ + " " + _)
+      }
+      .reduce(_ + "\n" + _)
 
   /**
     * Exercise 1
     */
   def pascal(c: Int, r: Int): Int =
-    if (c == 0 || c == r) 1
-    else pascal(c - 1, r - 1) + pascal(c, r - 1)
+    if (c == 0 || c == r) {
+      1
+    } else {
+      pascal(c - 1, r - 1) + pascal(c, r - 1)
+    }
 
   /**
     * Exercise 2
@@ -39,11 +45,14 @@ object Main {
     */
   def countChange(money: Int, coins: List[Int]): Int = {
     @tailrec def countChangeHelper(money: Int, coins: List[Int], total: Int): Int =
-      if (money < 0 || coins.isEmpty || coins.head == 0) total
-      else if (money == 0) total + 1
-      else countChangeHelper(money, coins.tail, total + countChange(money - coins.head, coins))
+      if (money < 0 || coins.isEmpty || coins.head == 0) {
+        total
+      } else if (money == 0) {
+        total + 1
+      } else {
+        countChangeHelper(money, coins.tail, total + countChange(money - coins.head, coins))
+      }
 
     countChangeHelper(money, coins, 0)
-
   }
 }
