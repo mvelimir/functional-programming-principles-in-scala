@@ -74,7 +74,7 @@ object Huffman {
     */
   def times(chars: List[Char]): List[(Char, Int)] = chars match {
     case Nil          => Nil
-    case head :: tail => (head, chars.count(x => x == head)) :: times(tail.filter(x => x != head))
+    case head :: tail => (head, chars.count(_ == head)) :: times(tail.filterNot(_ == head))
   }
 
   /**
@@ -97,10 +97,12 @@ object Huffman {
   /**
     * Checks whether the list `trees` contains only one single code tree.
     */
-  def singleton(trees: List[CodeTree]): Boolean = trees match {
-    case _ :: Nil => true
-    case _        => false
-  }
+  def singleton(trees: List[CodeTree]): Boolean =
+    if (trees.isEmpty) {
+      false
+    } else {
+      trees.tail.isEmpty
+    }
 
   /**
     * The parameter `trees` of this function is a list of code trees ordered
@@ -139,8 +141,11 @@ object Huffman {
     */
   @tailrec def until(singleton: List[CodeTree] => Boolean, combine: List[CodeTree] => List[CodeTree])(
       trees: List[CodeTree]): List[CodeTree] =
-    if (singleton(trees)) trees
-    else until(singleton, combine)(combine(trees))
+    if (singleton(trees)) {
+      trees
+    } else {
+      until(singleton, combine)(combine(trees))
+    }
 
   /**
     * This function creates a code tree which is optimal to encode the text `chars`.
@@ -160,12 +165,10 @@ object Huffman {
     * the resulting list of characters.
     */
   def decode(tree: CodeTree, bits: List[Bit]): List[Char] = tree match {
-    case Leaf(char, _) =>
-      if (bits.isEmpty) char :: Nil
-      else char :: decode(tree, bits.tail)
-    case Fork(left, right, _, _) =>
-      if (bits.head == 1) decode(right, bits.tail)
-      else decode(left, bits.tail)
+    case Leaf(char, _) if bits.isEmpty          => char :: Nil
+    case Leaf(char, _)                          => char :: decode(tree, bits.tail)
+    case Fork(_, right, _, _) if bits.head == 1 => decode(right, bits.tail)
+    case Fork(left, _, _, _)                    => decode(left, bits.tail)
   }
 
   /**
@@ -273,13 +276,13 @@ object Huffman {
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
 
     def findChar(tree: CodeTree, char: Char, acc: List[Bit]): List[Bit] = tree match {
-      case Leaf(x, _) =>
-        if (x == char) acc
-        else Nil
+      case Leaf(x, _) if x == char => acc
+      case Leaf(_, _)              => Nil
       case Fork(left, right, _, _) =>
-        val leftList = findChar(left, char, acc :+ 0)
-        if (leftList != Nil) leftList
-        else findChar(right, char, acc :+ 1)
+        findChar(left, char, acc :+ 0) match {
+          case Nil      => findChar(right, char, acc :+ 1)
+          case leftList => leftList
+        }
     }
 
     if (text.isEmpty) Nil
@@ -295,8 +298,8 @@ object Huffman {
     * the code table `table`.
     */
   @tailrec def codeBits(table: CodeTable)(char: Char): List[Bit] = table match {
-    case Nil          => throw new NoSuchElementException
-    case head :: tail => if (head._1 == char) head._2 else codeBits(tail)(char)
+    case Nil            => throw new NoSuchElementException
+    case (a, b) :: tail => if (a == char) b else codeBits(tail)(char)
   }
 
   /**
@@ -330,13 +333,6 @@ object Huffman {
     * To speed up the encoding process, it first converts the code tree to a code table
     * and then uses it to perform the actual encoding.
     */
-  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-
-    def quickEncodeHelper(table: CodeTable, text: List[Char]): List[Bit] = text match {
-      case Nil          => Nil
-      case head :: tail => codeBits(table)(head) ::: quickEncodeHelper(table, tail)
-    }
-
-    quickEncodeHelper(convert(tree), text)
-  }
+  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] =
+    text.foldRight(List[Bit]())(codeBits(convert(tree))(_) ::: _)
 }
