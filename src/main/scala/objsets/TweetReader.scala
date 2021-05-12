@@ -53,13 +53,15 @@ object TweetReader {
   private val gadgetlabTweets   = TweetReader.ParseTweets.getTweetData("gadgetlab", TweetData.gadgetlab)
   private val mashableTweets    = TweetReader.ParseTweets.getTweetData("mashable", TweetData.mashable)
 
-  private val sources = List(gizmodoTweets,
-                             techCrunchTweets,
-                             engadgetTweets,
-                             amazondealsTweets,
-                             cnetTweets,
-                             gadgetlabTweets,
-                             mashableTweets)
+  private val sources = List(
+    gizmodoTweets,
+    techCrunchTweets,
+    engadgetTweets,
+    amazondealsTweets,
+    cnetTweets,
+    gadgetlabTweets,
+    mashableTweets
+  )
 
   val tweetMap: Map[String, List[Tweet]] =
     Map() ++ Seq(
@@ -75,11 +77,14 @@ object TweetReader {
   val tweetSets: List[TweetSet] = sources.map(tweets => toTweetSet(tweets))
 
   private val siteTweetSetMap: Map[String, TweetSet] =
-    Map() ++ (sites.zip(tweetSets))
+    sites.zip(tweetSets).toMap
 
   private def unionOfAllTweetSets(curSets: List[TweetSet], acc: TweetSet): TweetSet =
-    if (curSets.isEmpty) acc
-    else unionOfAllTweetSets(curSets.tail, acc.union(curSets.head))
+    if (curSets.isEmpty) {
+      acc
+    } else {
+      unionOfAllTweetSets(curSets.tail, acc.union(curSets.head))
+    }
 
   val allTweets: TweetSet = unionOfAllTweetSets(tweetSets, new Empty)
 }

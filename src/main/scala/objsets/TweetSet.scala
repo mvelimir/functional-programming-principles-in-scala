@@ -77,10 +77,11 @@ abstract class TweetSet {
     * and be implemented in the subclasses?
     */
   def descendingByRetweet: TweetList =
-    if (this.isEmpty) Nil
-    else {
-      val twt = this.mostRetweeted
-      new Cons(twt, this.remove(twt).descendingByRetweet)
+    if (isEmpty) {
+      Nil
+    } else {
+      val twt = mostRetweeted
+      new Cons(twt, remove(twt).descendingByRetweet)
     }
 
   def isEmpty: Boolean
@@ -137,8 +138,11 @@ class Empty extends TweetSet {
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =
-    if (p(elem)) left.filterAcc(p, right.filterAcc(p, acc.incl(elem)))
-    else left.filterAcc(p, right.filterAcc(p, acc))
+    if (p(elem)) {
+      left.filterAcc(p, right.filterAcc(p, acc.incl(elem)))
+    } else {
+      left.filterAcc(p, right.filterAcc(p, acc))
+    }
 
   def union(that: TweetSet): TweetSet =
     (left.union(right.union(that))).incl(elem)
@@ -147,28 +151,54 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   def mostRetweeted: Tweet =
     if (!left.isEmpty && left.mostRetweeted.retweets > elem.retweets) {
-      if (right.isEmpty || left.mostRetweeted.retweets > right.mostRetweeted.retweets) left.mostRetweeted
-      else right.mostRetweeted
-    } else if (!right.isEmpty && right.mostRetweeted.retweets > elem.retweets) right.mostRetweeted
-    else elem
+      if (right.isEmpty || left.mostRetweeted.retweets > right.mostRetweeted.retweets) {
+        left.mostRetweeted
+      } else {
+        right.mostRetweeted
+      }
+    } else {
+      if (!right.isEmpty && right.mostRetweeted.retweets > elem.retweets) {
+        right.mostRetweeted
+      } else {
+        elem
+      }
+    }
 
   /**
     * The following methods are already implemented
     */
   def contains(x: Tweet): Boolean =
-    if (x.text < elem.text) left.contains(x)
-    else if (elem.text < x.text) right.contains(x)
-    else true
+    if (x.text < elem.text) {
+      left.contains(x)
+    } else {
+      if (elem.text < x.text) {
+        right.contains(x)
+      } else {
+        true
+      }
+    }
 
   def incl(x: Tweet): TweetSet =
-    if (x.text < elem.text) new NonEmpty(elem, left.incl(x), right)
-    else if (elem.text < x.text) new NonEmpty(elem, left, right.incl(x))
-    else this
+    if (x.text < elem.text) {
+      new NonEmpty(elem, left.incl(x), right)
+    } else {
+      if (elem.text < x.text) {
+        new NonEmpty(elem, left, right.incl(x))
+      } else {
+        this
+      }
+    }
 
   def remove(tw: Tweet): TweetSet =
-    if (tw.text < elem.text) new NonEmpty(elem, left.remove(tw), right)
-    else if (elem.text < tw.text) new NonEmpty(elem, left, right.remove(tw))
-    else left.union(right)
+    if (tw.text < elem.text) {
+      new NonEmpty(elem, left.remove(tw), right)
+    } else {
+      if (elem.text < tw.text) {
+        new NonEmpty(elem, left, right.remove(tw))
+      } else {
+        left.union(right)
+      }
+    }
 
   def foreach(f: Tweet => Unit): Unit = {
     f(elem)
@@ -189,8 +219,8 @@ trait TweetList {
 }
 
 object Nil extends TweetList {
-  def head    = throw new java.util.NoSuchElementException("head of EmptyList")
-  def tail    = throw new java.util.NoSuchElementException("tail of EmptyList")
+  def head    = throw new NoSuchElementException("head of EmptyList")
+  def tail    = throw new NoSuchElementException("tail of EmptyList")
   def isEmpty = true
 }
 
@@ -203,10 +233,10 @@ object GoogleVsApple {
   val apple  = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
 
   lazy val googleTweets: TweetSet = {
-    TweetReader.allTweets.filter(tweet => google.exists(str => tweet.text.contains(str)))
+    TweetReader.allTweets.filter(tweet => google.exists(tweet.text.contains))
   }
   lazy val appleTweets: TweetSet = {
-    TweetReader.allTweets.filter(tweet => google.exists(str => tweet.text.contains(str)))
+    TweetReader.allTweets.filter(tweet => google.exists(tweet.text.contains))
   }
 
   /**
