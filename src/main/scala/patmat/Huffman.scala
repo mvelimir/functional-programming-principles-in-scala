@@ -85,10 +85,9 @@ object Huffman {
     * of a leaf is the frequency of the character.
     */
   def makeOrderedLeafList(freqs: List[(Char, Int)]): List[Leaf] = {
-
     def makeOrderedLeafListHelper(freqs: List[(Char, Int)]): List[Leaf] = freqs match {
-      case Nil          => Nil
-      case head :: tail => Leaf(head._1, head._2) :: makeOrderedLeafList(tail)
+      case Nil            => Nil
+      case (a, b) :: tail => Leaf(a, b) :: makeOrderedLeafList(tail)
     }
 
     makeOrderedLeafListHelper(freqs.sortWith((el1, el2) => el1._2 < el2._2))
@@ -98,11 +97,7 @@ object Huffman {
     * Checks whether the list `trees` contains only one single code tree.
     */
   def singleton(trees: List[CodeTree]): Boolean =
-    if (trees.isEmpty) {
-      false
-    } else {
-      trees.tail.isEmpty
-    }
+    trees.nonEmpty && trees.tail.isEmpty
 
   /**
     * The parameter `trees` of this function is a list of code trees ordered
@@ -274,7 +269,6 @@ object Huffman {
     * into a sequence of bits.
     */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-
     def findChar(tree: CodeTree, char: Char, acc: List[Bit]): List[Bit] = tree match {
       case Leaf(x, _) if x == char => acc
       case Leaf(_, _)              => Nil
@@ -285,8 +279,7 @@ object Huffman {
         }
     }
 
-    if (text.isEmpty) Nil
-    else findChar(tree, text.head, List()) ::: encode(tree)(text.tail)
+    text.foldRight(List[Bit]())(findChar(tree, _, Nil) ::: _)
   }
 
   // Part 4b: Encoding using code table
@@ -317,7 +310,7 @@ object Huffman {
       case Fork(left, right, _, _) => mergeCodeTables(convertHelper(left, list :+ 0), convertHelper(right, list :+ 1))
     }
 
-    convertHelper(tree, List())
+    convertHelper(tree, Nil)
   }
 
   /**
