@@ -36,7 +36,7 @@ object Anagrams {
     *  same character, and are represented as a lowercase character in the occurrence list.
     */
   def wordOccurrences(w: Word): Occurrences =
-    w.toLowerCase.groupBy(x => x).map(x => (x._1, x._2.length)).toList.sorted
+    w.toLowerCase.groupBy(identity).map { case (a, b) => (a, b.length) }.toList.sorted
 
   /** Converts a sentence into its character occurrence list. */
   def sentenceOccurrences(s: Sentence): Occurrences =
@@ -58,14 +58,11 @@ object Anagrams {
     *
     */
   lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] =
-    (for (w <- dictionary) yield w).groupBy(x => wordOccurrences(x))
+    (for (w <- dictionary) yield w).groupBy(wordOccurrences)
 
   /** Returns all the anagrams of a given word. */
   def wordAnagrams(word: Word): List[Word] =
-    dictionaryByOccurrences.get(wordOccurrences(word)) match {
-      case Some(x) => x
-      case None    => List()
-    }
+    dictionaryByOccurrences.get(wordOccurrences(word)).fold(Nil: List[Word])(identity)
 
   /** Returns the list of all subsets of the occurrence list.
     *  This includes the occurrence itself, i.e. `List(('k', 1), ('o', 1))`
@@ -114,8 +111,11 @@ object Anagrams {
     case (char, num_x) :: tail_x =>
       y match {
         case (char, num_y) :: tail_y =>
-          if (num_x == num_y) subtract(tail_x, tail_y)
-          else (char, num_x - num_y) :: subtract(tail_x, tail_y)
+          if (num_x == num_y) {
+            subtract(tail_x, tail_y)
+          } else {
+            (char, num_x - num_y) :: subtract(tail_x, tail_y)
+          }
         case _ => (char, num_x) :: subtract(tail_x, y)
       }
   }
