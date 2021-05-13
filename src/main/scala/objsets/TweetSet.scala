@@ -138,11 +138,7 @@ class Empty extends TweetSet {
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =
-    if (p(elem)) {
-      left.filterAcc(p, right.filterAcc(p, acc.incl(elem)))
-    } else {
-      left.filterAcc(p, right.filterAcc(p, acc))
-    }
+    left.filterAcc(p, right.filterAcc(p, if (p(elem)) acc.incl(elem) else acc))
 
   def union(that: TweetSet): TweetSet =
     (left.union(right.union(that))).incl(elem)
@@ -170,12 +166,10 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   def contains(x: Tweet): Boolean =
     if (x.text < elem.text) {
       left.contains(x)
+    } else if (elem.text < x.text) {
+      right.contains(x)
     } else {
-      if (elem.text < x.text) {
-        right.contains(x)
-      } else {
-        true
-      }
+      true
     }
 
   def incl(x: Tweet): TweetSet =
@@ -192,12 +186,10 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   def remove(tw: Tweet): TweetSet =
     if (tw.text < elem.text) {
       new NonEmpty(elem, left.remove(tw), right)
+    } else if (elem.text < tw.text) {
+      new NonEmpty(elem, left, right.remove(tw))
     } else {
-      if (elem.text < tw.text) {
-        new NonEmpty(elem, left, right.remove(tw))
-      } else {
-        left.union(right)
-      }
+      left.union(right)
     }
 
   def foreach(f: Tweet => Unit): Unit = {
