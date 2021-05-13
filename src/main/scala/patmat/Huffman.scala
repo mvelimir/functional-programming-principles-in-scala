@@ -291,8 +291,9 @@ object Huffman {
     * the code table `table`.
     */
   @tailrec def codeBits(table: CodeTable)(char: Char): List[Bit] = table match {
-    case Nil            => throw new NoSuchElementException
-    case (a, b) :: tail => if (a == char) b else codeBits(tail)(char)
+    case Nil                           => throw new NoSuchElementException
+    case (a, b) :: tail if (a == char) => b
+    case _ :: tail                     => codeBits(tail)(char)
   }
 
   /**
